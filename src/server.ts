@@ -1,15 +1,23 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 
 import user from "./routes/user";
 import memory from "./routes/memory";
+import register from "./routes/auth";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:3000"]
+}));
+
+
+app.use(express.json());
 app.use(helmet());
 
+app.use("/", register);
 app.use("/user", user);
 app.use("/memories", memory);
 
