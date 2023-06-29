@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { z } from "zod";
+import jwt from "jsonwebtoken";
 import axios from "axios";
 
 
@@ -78,8 +79,13 @@ const register = async (req: Request, res: Response) => {
         status = 201;
     }
 
+    const token = jwt.sign({
+        name:user.name,
+        avatarUrl:user.avatarUrl
+    }, "spacetime", { subject: user.id, expiresIn:"7 days" });
+
     res.status(status);
-    res.json({user: user});
+    res.json({token: token});
 };
 
 export { register };
