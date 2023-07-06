@@ -9,7 +9,7 @@ const getAllMemories = async (req: Request, res: Response) => {
             createdAt: "asc"
         }
     });
-
+    
     res.status(200);
     res.json({ memories: memories.map((memory) => {
         return {
