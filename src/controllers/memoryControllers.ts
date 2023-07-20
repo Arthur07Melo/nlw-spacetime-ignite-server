@@ -5,6 +5,9 @@ import { Request, Response } from "express";
 
 const getAllMemories = async (req: Request, res: Response) => {
     const memories = await prisma.memory.findMany({
+        where: {
+            userId: req.user.sub
+        },
         orderBy: {
             createdAt: "asc"
         }
@@ -33,6 +36,10 @@ const getSpecificMemory = async (req: Request, res: Response) => {
         }
     });
 
+    if(!memory.isPublic && memory.userId !== req.user.sub){
+        return res.status(401).json({ message: "Unauthorized"});
+    }
+
     res.status(200);
     res.json({ memory: memory });
 };
@@ -51,7 +58,7 @@ const createMemory = async (req: Request, res: Response) => {
             content,
             coverUrl,
             isPublic,
-            userId: "1d02b67f-e0ed-4d4d-aca6-a867a14443f4"
+            userId: req.user.sub ?? ""
         }
     });
 
@@ -72,7 +79,17 @@ const updateMemory = async (req: Request, res: Response) => {
     const { id } = paramsSchema.parse(req.params);
     const { content, coverUrl, isPublic } = bodySchema.parse(req.body);
 
-    const memory = await prisma.memory.update({
+    let memory = await prisma.memory.findUniqueOrThrow({
+        where:{
+            id,
+        }
+    });
+
+    if(memory.userId !== req.user.sub){
+        return res.status(401).json({ message: "Unauthorized"});
+    }
+    
+    memory = await prisma.memory.update({
         where: {
             id,
         },
@@ -93,6 +110,16 @@ const deleteMemory = async (req: Request, res: Response) => {
     });
 
     const { id } = paramsSchema.parse(req.params);
+
+    const memory = await prisma.memory.findUniqueOrThrow({
+        where:{
+            id,
+        }
+    });
+
+    if(memory.userId !== req.user.sub){
+        return res.status(401).json({ message: "Unauthorized"});
+    }
 
     await prisma.memory.delete({
         where: {

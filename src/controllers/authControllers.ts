@@ -10,12 +10,8 @@ const register = async (req: Request, res: Response) => {
         code: z.string(),
     });
 
-    console.log("entered register");
-    console.log(req.body);
-
     const { code } = bodySchema.parse(req.body);
 
-    console.log("BODY PARSED...");
     const accessTokenResponse = await axios.post(
         "https://github.com/login/oauth/access_token",
         null,
@@ -32,12 +28,8 @@ const register = async (req: Request, res: Response) => {
         }
     );
 
-    console.log("ACCESS TOKEN TAKEN");
-
     const { access_token } = accessTokenResponse.data;
     
-    console.log("ACCESS TOKEN PARSED...");
-
     const userResponse = await axios.get(
         "https://api.github.com/user",
         {
@@ -46,8 +38,6 @@ const register = async (req: Request, res: Response) => {
             }
         }
     );
-
-    console.log("User response got.");
 
     const userSchema = z.object({
         id: z.number(),
@@ -58,7 +48,6 @@ const register = async (req: Request, res: Response) => {
 
     const userInfo = userSchema.parse(userResponse.data);
 
-    console.log("userInfo parsed...");
     let user = await prisma.user.findUnique({
         where: {
             githubId: userInfo.id
